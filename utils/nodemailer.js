@@ -6,14 +6,14 @@ const transporter = nodemailer.createTransport({
   port: 587, // SMTP port
   secure: false, // Set to true if using port 465, otherwise false for port 587
   auth: {
-    user: "aaqibgouher@gmail.com", // Your Ethereal email
-    pass: "gwmw jioo oraz seup", // Your Ethereal password
+    user: "", // Your Ethereal email
+    pass: "", // Your Ethereal password
   },
 });
 
 const sendOtpEmailUtils = (email, otp) => {
   const mailOptions = {
-    from: "aaqibgouher@gmail.com",
+    from: "",
     to: email,
     subject: "Email Verification OTP",
     html: `<div style="max-width: 600px; margin: auto; font-family: Arial, sans-serif; background-color: #f9f9f9; border: 1px solid #ddd; padding: 20px; border-radius: 10px;">
