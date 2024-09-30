@@ -6,8 +6,8 @@ const transporter = nodemailer.createTransport({
   port: 587, // SMTP port
   secure: false, // Set to true if using port 465, otherwise false for port 587
   auth: {
-    user: "", // Your Ethereal email
-    pass: "", // Your Ethereal password
+    user: "aaqibgouher@gmail.com", // Your Ethereal email
+    pass: "mrao ucuo ozap dbqi", // Your Ethereal password
   },
 });
 
