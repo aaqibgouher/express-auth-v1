@@ -1,5 +1,6 @@
 const db = require("../database");
 const { isValidEmail, generateOtp } = require("../utils/common");
+const { generateToken } = require("../utils/jwt");
 const { sendOtpEmailUtils } = require("../utils/nodemailer");
 
 // STEPS
@@ -133,18 +134,23 @@ const verifyOtp = async (req, res) => {
     if (!result || !result?.length)
       throw "User not found by email, please register";
 
-    if (otp.isOtpVerified)
-      throw "Otp already verified, you can proceed to login";
-
     // extract first user
     const user = result[0];
+
+    if (user.isOtpVerified)
+      throw "Otp already verified, you can proceed to login";
 
     // if otp not matched
     if (otp !== user.otp) throw "Otp invalid";
 
     // update isOtpVerified & Otp
-    const updateQuery = `UPDATE users SET isOtpVerified = ?, otp = ? WHERE id = ?`;
-    const [updateResult] = await db.query(updateQuery, [true, "", user.id]);
+    const updateQuery = `UPDATE users SET isOtpVerified = ?, otp = ?, isActive = ? WHERE id = ?`;
+    const [updateResult] = await db.query(updateQuery, [
+      true,
+      "",
+      true,
+      user.id,
+    ]);
 
     res.json({
       status: 200,
@@ -157,8 +163,68 @@ const verifyOtp = async (req, res) => {
   }
 };
 
+/*
+  1) Destructure request body (done)
+  2) Validations
+    - Basic: email/password is required (done)
+    - Advance: 
+      - check if user exist by email (done)
+      - check if otp is verified or not (done)
+      - check if user -> isActive is true/false, if inactive throw error (done)
+      - check if pass matched pass (db) (done)
+  3) Generate token
+    - method to generate a token
+  4) return user detail in the res + token
+*/
+const login = async (req, res) => {
+  try {
+    // data
+    const { email, password } = req.body;
+
+    // validations
+    if (!email || !email.trim()) throw "Email is required";
+    if (!isValidEmail(email)) throw "Email is not valid";
+    if (!password || !password.trim()) throw "Password is required";
+
+    // check if user exists by email
+    const getUserQuery = `SELECT * FROM users where email = ?`;
+
+    const [result] = await db.query(getUserQuery, [email]);
+
+    if (!result || !result.length) throw "Email not found, please register";
+
+    const user = result[0];
+
+    // check if otp is verified or not
+    if (!user.isOtpVerified) throw "Otp is not verfied, please verify";
+
+    // check if user is active/inactive
+    if (!user.isActive) throw "User is inactive, please contact to admin";
+
+    // check if password matched or not
+    if (password !== user.password) throw "Email/Password is incorrect";
+
+    // generate token
+    const token = generateToken({ id: user.id, email: user.email });
+
+    res.json({
+      status: 200,
+      message: "Successfully login",
+      data: {
+        id: user.id,
+        email: user.email,
+        token,
+      },
+    });
+  } catch (error) {
+    console.log(error, "from verify otp");
+    res.status(400).json({ status: 400, error });
+  }
+};
+
 module.exports = {
   register,
   sendOtpEmail,
   verifyOtp,
+  login,
 };
