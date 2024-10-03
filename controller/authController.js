@@ -222,9 +222,23 @@ const login = async (req, res) => {
   }
 };
 
+const getMe = async (req, res) => {
+  try {
+    res.json({
+      status: 200,
+      message: "Successfully login",
+      data: { userInfo: req.user },
+    });
+  } catch (error) {
+    console.log(error, "from verify otp");
+    res.status(400).json({ status: 400, error });
+  }
+};
+
 module.exports = {
   register,
   sendOtpEmail,
   verifyOtp,
   login,
+  getMe,
 };
